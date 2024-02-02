@@ -199,7 +199,8 @@ public class ConversableAgent : IAgent
         // process function call
         agent = agent.RegisterReply(async (messages, cancellationToken) =>
         {
-            if (this.functionMap != null && messages.Last()?.FunctionName is string functionName && messages.Last()?.FunctionArguments is string functionArguments && this.functionMap.ContainsKey(functionName))
+            // Note: If the role is Function, we're sending a reply from a function call, not requsting one
+            if (this.functionMap != null && messages.Last()?.FunctionName is string functionName && messages.Last()?.FunctionArguments is string functionArguments && messages.Last().Role != Role.Function && this.functionMap.ContainsKey(functionName))
             {
                 return await this.ExecuteFunctionCallAsync(messages.Last(), cancellationToken);
             }
@@ -207,12 +208,17 @@ public class ConversableAgent : IAgent
             return null;
         });
 
-        // process self execute
+        // process execute from assistant 
         agent = agent.RegisterPostProcess(async (messages, currentMessage, cancellationToken) =>
         {
-            if (this.functionMap != null && currentMessage.FunctionName is string functionName && currentMessage.FunctionArguments is string functionArguments)
+            if (this.functionMap != null && currentMessage.FunctionName is string functionName && currentMessage.FunctionArguments is string functionArguments && currentMessage.Role != Role.Function)
             {
-                return await this.ExecuteFunctionCallAsync(currentMessage, cancellationToken);
+                var response = await this.ExecuteFunctionCallAsync(currentMessage, cancellationToken);
+
+                // Each executing gets sent back to assistant. Multiple functions may be called to generate one response.
+                response = await agent.SendAsync(response, messages);
+
+                return response;
             }
             else
             {
@@ -229,8 +235,9 @@ public class ConversableAgent : IAgent
         {
             if (this.functionMap.TryGetValue(functionName, out var func))
             {
+                // Note: the role is function to tell we're returning values from a function, not requesting a function call
                 var result = await func(functionArguments);
-                return new Message(Role.Assistant, result, from: this.Name)
+                return new Message(Role.Function, result, from: this.Name)
                 {
                     FunctionName = functionName,
                     FunctionArguments = functionArguments,
@@ -239,7 +246,7 @@ public class ConversableAgent : IAgent
             else
             {
                 var errorMessage = $"Function {functionName} is not available. Available functions are: {string.Join(", ", this.functionMap.Select(f => f.Key))}";
-                return new Message(Role.Assistant, errorMessage, from: this.Name)
+                return new Message(Role.Function, errorMessage, from: this.Name)
                 {
                     FunctionName = functionName,
                     FunctionArguments = functionArguments,

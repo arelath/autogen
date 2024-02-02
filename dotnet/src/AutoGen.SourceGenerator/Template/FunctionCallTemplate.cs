@@ -109,7 +109,7 @@ if (parameter.DefaultValue != null && parameter.DefaultValue != "null") {
 }
             this.Write("\t\t\t\t\t    },\r\n");
 }
-            this.Write("                    },\r\n                    Required = new []\r\n\t\t\t\t\t{\r\n");
+            this.Write("                    },\r\n                    Required = new string[]\r\n\t\t\t\t\t{\r\n");
 foreach (var parameter in functionContract.Parameters.Where(p => !p.IsOptional)) {
             this.Write("\t\t\t\t\t    \"");
             this.Write(this.ToStringHelper.ToStringWithCulture(parameter.Name));

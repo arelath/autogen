@@ -92,9 +92,9 @@ public class InteractiveService : IDisposable
             var compositeKernel = new CompositeKernel("cbcomposite");
             var cmd = new string[]
             {
-                    "dotnet",
-                    "tool",
-                    "run",
+                    //"dotnet",
+                    //"tool",
+                    //"run",
                     "dotnet-interactive",
                     $"[cb-{Process.GetCurrentProcess().Id}]",
                     "stdio",

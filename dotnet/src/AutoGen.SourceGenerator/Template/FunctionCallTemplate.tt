@@ -79,7 +79,7 @@ namespace <#=NameSpace#>
 					    },
 <#}#>
                     },
-                    Required = new []
+                    Required = new string[]
 					{
 <#foreach (var parameter in functionContract.Parameters.Where(p => !p.IsOptional)) {#>
 					    "<#=parameter.Name#>",
