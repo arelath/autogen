@@ -216,7 +216,7 @@ public class ConversableAgent : IAgent
                 var response = await this.ExecuteFunctionCallAsync(currentMessage, cancellationToken);
 
                 // Each executing gets sent back to assistant. Multiple functions may be called to generate one response.
-                response = await agent.SendAsync(response, messages);
+                //response = await agent.SendAsync(response, messages);
 
                 return response;
             }

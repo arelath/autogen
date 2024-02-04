@@ -24,6 +24,8 @@ public class Message
     public Message(Message other)
         : this(other.Role, other.Content, other.From)
     {
+        this.FunctionName = other.FunctionName;
+        this.FunctionArguments = other.FunctionArguments;
     }
 
     public Role Role { get; set; }

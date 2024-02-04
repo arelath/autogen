@@ -47,9 +47,16 @@ public class SequentialGroupChat : IGroupChat
         while (round < maxRound)
         {
             var currentSpeaker = this.SelectNextSpeaker(lastSpeaker);
-            var processedConversation = this.ProcessConversationForAgent(this.initializeMessages, conversationHistory);
-            var result = await currentSpeaker.GenerateReplyAsync(processedConversation) ?? throw new Exception("No result is returned.");
-            conversationHistory.Add(result);
+            Message result;
+
+            // An agent may use multiple function calls to generate a response. We want those function calls in the chat history so the
+            // agent doesn't decide to do them repeatly. 
+            do
+            {
+                var processedConversation = this.ProcessConversationForAgent(this.initializeMessages, conversationHistory);
+                result = await currentSpeaker.GenerateReplyAsync(processedConversation) ?? throw new Exception("No result is returned.");
+                conversationHistory.Add(result);
+            } while (result.Role == Role.Function);
 
             // if message is terminate message, then terminate the conversation
             if (result?.IsGroupChatTerminateMessage() ?? false)
