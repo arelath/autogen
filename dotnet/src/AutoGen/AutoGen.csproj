@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.AI.OpenAI" Version="$(AzureOpenAIVersion)" />
+    <PackageReference Include="Google_GenerativeAI" Version="0.1.12" />
   </ItemGroup>
 
 </Project>
