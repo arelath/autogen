@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using GenerativeAI.Methods;
 using GenerativeAI.Models;
+using GenerativeAI.Tools;
 using GenerativeAI.Types;
 
 namespace AutoGen.Gemini;
@@ -45,7 +46,23 @@ public class GeminiAgent : IAgent
         {
             GeminiConfig geminiConfig => geminiConfig.ModelId,
             _ => throw new ArgumentException($"Unsupported config type {config.GetType()}"),
-        }; ;
+        };
+
+        if (functions != null)
+        {
+            foreach (var function in functions)
+            {
+                ChatCompletionFunction completionFunction = new ChatCompletionFunction();
+                completionFunction.Name = function.Name;
+                completionFunction.Description = function.Description;
+
+                var functionJson = function.Parameters.ToString();
+            }
+
+            //generativeModel.AddGlobalFunctions();
+        }
+
+        
 
         _systemMessage = systemMessage;
         _functions = functions;
