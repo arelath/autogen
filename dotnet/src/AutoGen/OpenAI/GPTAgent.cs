@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.AI.OpenAI;
+using Azure.Core;
 
 namespace AutoGen.OpenAI;
 
@@ -32,7 +33,9 @@ public class GPTAgent : IAgent
         openAIClient = config switch
         {
             AzureOpenAIConfig azureConfig => new OpenAIClient(new Uri(azureConfig.Endpoint), new Azure.AzureKeyCredential(azureConfig.ApiKey)),
-            OpenAIConfig openAIConfig => new OpenAIClient(openAIConfig.ApiKey),
+            OpenAIConfig openAIConfig => openAIConfig.Endpoint == null ?
+                new OpenAIClient(openAIConfig.ApiKey) :
+                new OpenAIClient(new Uri(openAIConfig.Endpoint), DelegatedTokenCredential.Create((_, _) => new AccessToken(openAIConfig.ApiKey, DateTimeOffset.Now.AddDays(180)))),
             _ => throw new ArgumentException($"Unsupported config type {config.GetType()}"),
         };
 

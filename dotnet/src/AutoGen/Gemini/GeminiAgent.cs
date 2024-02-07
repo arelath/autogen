@@ -3,14 +3,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using GenerativeAI.Methods;
 using GenerativeAI.Models;
-using GenerativeAI.Tools;
+//using GenerativeAI.Tools;
 using GenerativeAI.Types;
 
 namespace AutoGen.Gemini;
@@ -48,7 +47,7 @@ public class GeminiAgent : IAgent
             _ => throw new ArgumentException($"Unsupported config type {config.GetType()}"),
         };
 
-        if (functions != null)
+        /*if (functions != null)
         {
             foreach (var function in functions)
             {
@@ -60,9 +59,7 @@ public class GeminiAgent : IAgent
             }
 
             //generativeModel.AddGlobalFunctions();
-        }
-
-        
+        }*/
 
         _systemMessage = systemMessage;
         _functions = functions;

@@ -12,7 +12,8 @@ namespace AutoGen
     {
         public static IEnumerable<ILLMConfig> GetOpenAIConfigList(
             string apiKey,
-            IEnumerable<string>? modelIDs = null)
+            IEnumerable<string>? modelIDs = null,
+            string? endpoint = null)
         {
             var models = modelIDs ?? new[]
             {
@@ -25,7 +26,7 @@ namespace AutoGen
                 "gpt-4-1106-preview",
             };
 
-            return models.Select(modelId => new OpenAIConfig(apiKey, modelId));
+            return models.Select(modelId => new OpenAIConfig(apiKey, modelId, endpoint));
         }
 
         public static IEnumerable<ILLMConfig> GetAzureOpenAIConfigList(
