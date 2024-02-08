@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.AI.OpenAI;
 using GenerativeAI.Methods;
 using GenerativeAI.Models;
+using GenerativeAI.Tools;
 //using GenerativeAI.Tools;
 using GenerativeAI.Types;
 
@@ -47,19 +49,38 @@ public class GeminiAgent : IAgent
             _ => throw new ArgumentException($"Unsupported config type {config.GetType()}"),
         };
 
-        /*if (functions != null)
+        if (functions != null)
         {
+            // Google's Generative AI API uses the exact same function schema as OpenAI according to the docs, 
+            // However, the JSON is different between the two libraries. To fix this, we simply deserialize and
+            // re-serialize the data to translate it from one library's DTO to the other. 
+            /*var serializeOptions = new JsonSerializerOptions { WriteIndented = true };
+            var jsonString = JsonSerializer.Serialize(functions, serializeOptions);
+
+            var googleFunctions =
+                JsonSerializer.Deserialize<List<ChatCompletionFunction>>(jsonString);*/            
+
+            //generativeModel.AddGlobalFunctions(googleFunctions, googleFunctionMap);
+
+            List<ChatCompletionFunction> googleFunctions = new();
             foreach (var function in functions)
             {
                 ChatCompletionFunction completionFunction = new ChatCompletionFunction();
                 completionFunction.Name = function.Name;
                 completionFunction.Description = function.Description;
 
-                var functionJson = function.Parameters.ToString();
+                var functionParameterJson = function.Parameters.ToString();
+                completionFunction.Parameters = JsonSerializer.Deserialize<ChatCompletionFunctionParameters>(functionParameterJson)!; // new ChatCompletionFunctionParameters();
+                googleFunctions.Add(completionFunction);
             }
 
-            //generativeModel.AddGlobalFunctions();
-        }*/
+            // Adding an unused cancelation token to the function map for differences in the APIs
+            var googleFunctionMap = functionMap
+                .Select(f => new KeyValuePair<string, Func<string, CancellationToken, Task<string>>>(f.Key, (args, _) => f.Value(args)))
+                .ToDictionary(x => x.Key, x => x.Value);
+
+            generativeModel.AddGlobalFunctions(googleFunctions, googleFunctionMap);
+        }
 
         _systemMessage = systemMessage;
         _functions = functions;
