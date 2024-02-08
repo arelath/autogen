@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.AI.OpenAI;
@@ -76,8 +77,11 @@ public class GeminiAgent : IAgent
 
             // Adding an unused cancelation token to the function map for differences in the APIs
             var googleFunctionMap = functionMap
-                .Select(f => new KeyValuePair<string, Func<string, CancellationToken, Task<string>>>(f.Key, (args, _) => f.Value(args)))
-                .ToDictionary(x => x.Key, x => x.Value);
+                .Select(f => new KeyValuePair<string, Func<string, CancellationToken, Task<string>>>(f.Key, async (args, _) =>
+                {
+                    string val = await f.Value(args);
+                    return JsonValue.Create(val).ToJsonString();
+                })).ToDictionary(x => x.Key, x => x.Value);
 
             generativeModel.AddGlobalFunctions(googleFunctions, googleFunctionMap);
         }
@@ -89,6 +93,8 @@ public class GeminiAgent : IAgent
         _maxTokens = maxTokens;
         this.functionMap = functionMap;
     }
+
+
 
     public string? Name { get; }
 
